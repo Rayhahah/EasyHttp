@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">EasyHttp</string>
+    <string name="init_client">初始化OkHttpClient</string>
+    <string name="get_request">GET请求</string>
+    <string name="post_request">POST请求</string>
+    <string name="json_request">JSON请求</string>
+    <string name="put_request">PUT请求</string>
+    <string name="delete_request">DELETE请求</string>
+    <string name="post_file">上传单个文件</string>
+    <string name="post_list_file">上传多个文件</string>
 </resources>

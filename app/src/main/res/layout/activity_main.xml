@@ -1,19 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.rayhahah.easyhttp.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/mInitClient"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        android:text="@string/init_client"
+        android:textAllCaps="false"/>
 
-</android.support.constraint.ConstraintLayout>
+
+    <Button
+        android:id="@+id/mGet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/get_request"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mPost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/post_request"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mJson"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/json_request"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mPut"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/put_request"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_request"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mPostFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/post_file"
+        android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mPostListFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/post_list_file"
+        android:textAllCaps="false"/>
+
+</LinearLayout>
