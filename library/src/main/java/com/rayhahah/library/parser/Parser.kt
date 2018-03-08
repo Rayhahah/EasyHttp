@@ -26,13 +26,13 @@ import java.lang.reflect.Type
  * @tips 这个类是Object的子类
  * @fuction
  */
-interface Parser<T> {
+interface Parser {
 
     @Throws(IOException::class)
-    fun parse(response: Response, type: Type): T?
+    fun parse(response: Response, type: Type): Any?
 
     fun isCanParse(contentType: String, type: Type): Boolean
 
     @Throws(IOException::class)
-    fun parse(content: String, type: Type): T?
+    fun parse(content: String, type: Type): Any?
 }

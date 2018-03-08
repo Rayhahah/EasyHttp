@@ -8,7 +8,11 @@ import com.rayhahah.library.core.EasyClient
 import com.rayhahah.library.http.HttpFile
 import com.rayhahah.library.http.HttpHeader
 import com.rayhahah.library.parser.DefaultParser
+import com.rayhahah.library.parser.FileParser
+import com.rayhahah.library.parser.Parser
 import com.rayhahah.library.request.HttpRequest
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import okhttp3.Call
 import okhttp3.OkHttpClient
 
@@ -47,7 +51,7 @@ class RequestManager {
                       , failed: (call: Call, exception: Exception) -> Unit
                       , progress: (value: Float, total: Long) -> Unit
         ) {
-            val httpRequest = initHttpRequest<T>(failed, success, okHttpClient, url, progress)
+            val httpRequest = initHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, failed, success)
             httpRequest.header(header)
                     .paramsGet(params)
                     .excute()
@@ -61,7 +65,7 @@ class RequestManager {
                        , failed: (call: Call, exception: Exception) -> Unit
                        , progress: (value: Float, total: Long) -> Unit
         ) {
-            val httpRequest = initHttpRequest<T>(failed, success, okHttpClient, url, progress)
+            val httpRequest = initHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, failed, success)
             httpRequest.header(header)
                     .paramsForm(type, params)
                     .excute()
@@ -75,7 +79,7 @@ class RequestManager {
                        , failed: (call: Call, exception: Exception) -> Unit
                        , progress: (value: Float, total: Long) -> Unit
         ) {
-            val httpRequest = initHttpRequest<T>(failed, success, okHttpClient, url, progress)
+            val httpRequest = initHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, failed, success)
             httpRequest.header(header)
                     .paramsFile(params, fileMap)
                     .excute()
@@ -89,14 +93,36 @@ class RequestManager {
                        , failed: (call: Call, exception: Exception) -> Unit
                        , progress: (value: Float, total: Long) -> Unit
         ) {
-            val httpRequest = initHttpRequest<T>(failed, success, okHttpClient, url, progress)
+            val httpRequest = initHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, failed, success)
             httpRequest.header(header)
                     .paramsJson(type, json)
                     .excute()
         }
 
-        fun <T> initHttpRequest(failed: (call: Call, exception: Exception) -> Unit, success: (data: T) -> Unit, okHttpClient: OkHttpClient?, url: String, progress: (value: Float, total: Long) -> Unit): HttpRequest {
-            val wrapperCallBack = initCallBack<T>(failed, success)
+        fun <T> goDownload(okHttpClient: OkHttpClient?, url: String
+                           , header: HttpHeader
+                           , fileDir: String
+                           , fileName: String
+                           , success: (data: T) -> Unit
+                           , failed: (call: Call, exception: Exception) -> Unit
+                           , progress: (value: Float, total: Long) -> Unit
+        ) {
+            val httpRequest = initHttpRequest<T>(okHttpClient, url, FileParser<T>(fileDir, fileName, progress), progress, failed, success)
+            httpRequest.header(header)
+                    .paramsGet(HashMap<String, String>())
+                    .excute()
+        }
+
+
+        fun <T> initHttpRequest(okHttpClient: OkHttpClient?
+                                , url: String
+                                , parser: Parser
+                                , progress: (value: Float, total: Long) -> Unit
+                                , failed: (call: Call, exception: Exception) -> Unit
+                                , success: (data: T) -> Unit): HttpRequest {
+
+
+            val wrapperCallBack = initCallBack<T>(parser, failed, success)
             val httpRequest = if (okHttpClient == null) {
                 HttpRequest(client, url, wrapperCallBack, progress)
             } else {
@@ -105,11 +131,14 @@ class RequestManager {
             return httpRequest
         }
 
-        fun <T> initCallBack(failed: (call: Call, exception: Exception) -> Unit,
+        fun <T> initCallBack(parser: Parser,
+                             failed: (call: Call, exception: Exception) -> Unit,
                              success: (data: T) -> Unit): WrapperCallBack<T> {
             val wrapperCallBack = WrapperCallBack(object : AbstractCallBack<T>() {
                 override fun fail(call: Call, e: Exception) {
                     mMainHandler.post { failed(call, e) }
+
+
                 }
 
                 override fun success(call: Call, response: T) {
@@ -118,8 +147,99 @@ class RequestManager {
                     }
                 }
 
-            }, DefaultParser<T>())
+            }, parser)
             return wrapperCallBack
         }
+
+
+        fun <T> rxGet(okHttpClient: OkHttpClient?, url: String
+                      , header: HttpHeader
+                      , params: HashMap<String, String>
+                      , progress: (value: Float, total: Long) -> Unit
+        ): Observable<T> {
+            return Observable.create<T> { emitter: ObservableEmitter<T> ->
+                val httpRequest = initRxHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, emitter)
+                httpRequest.header(header)
+                        .paramsGet(params)
+                        .excute()
+            }
+        }
+
+
+        fun <T> rxForm(okHttpClient: OkHttpClient?, url: String
+                       , header: HttpHeader
+                       , type: String
+                       , params: HashMap<String, String>
+                       , progress: (value: Float, total: Long) -> Unit
+        ): Observable<T> {
+            return Observable.create<T> { emitter: ObservableEmitter<T> ->
+                val httpRequest = initRxHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, emitter)
+                httpRequest.header(header)
+                        .paramsForm(type, params)
+                        .excute()
+            }
+        }
+
+        fun <T> rxFile(okHttpClient: OkHttpClient?, url: String
+                       , header: HttpHeader
+                       , params: HashMap<String, String>
+                       , fileMap: HashMap<String, HttpFile>
+                       , progress: (value: Float, total: Long) -> Unit
+        ): Observable<T> {
+            return Observable.create<T> { emitter: ObservableEmitter<T> ->
+                val httpRequest = initRxHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, emitter)
+                httpRequest.header(header)
+                        .paramsFile(params, fileMap)
+                        .excute()
+            }
+        }
+
+        fun <T> rxJson(okHttpClient: OkHttpClient?, url: String
+                       , header: HttpHeader
+                       , type: String
+                       , json: String
+                       , progress: (value: Float, total: Long) -> Unit
+        ): Observable<T>{
+            return Observable.create<T> { emitter: ObservableEmitter<T> ->
+                val httpRequest = initRxHttpRequest<T>(okHttpClient, url, DefaultParser<T>(), progress, emitter)
+                httpRequest.header(header)
+                        .paramsJson(type, json)
+                        .excute()
+            }
+        }
+
+
+        fun <T> initRxHttpRequest(
+                okHttpClient: OkHttpClient?
+                , url: String
+                , parser: Parser
+                , progress: (value: Float, total: Long) -> Unit
+                , emitter: ObservableEmitter<T>): HttpRequest {
+            val wrapperCallBack = initRxCallBack<T>(parser, emitter)
+            val httpRequest = if (okHttpClient == null) {
+                HttpRequest(client, url, wrapperCallBack, progress)
+            } else {
+                HttpRequest(okHttpClient, url, wrapperCallBack, progress)
+            }
+
+            return httpRequest
+        }
+
+        fun <T> initRxCallBack(parser: Parser, emitter: ObservableEmitter<T>): WrapperCallBack<T> {
+            val wrapperCallBack = WrapperCallBack(object : AbstractCallBack<T>() {
+                override fun fail(call: Call, e: Exception) {
+                    emitter.onError(e)
+
+                }
+
+                override fun success(call: Call, response: T) {
+                    emitter.onNext(response)
+                }
+
+            }, parser)
+            return wrapperCallBack
+
+        }
+
     }
 }

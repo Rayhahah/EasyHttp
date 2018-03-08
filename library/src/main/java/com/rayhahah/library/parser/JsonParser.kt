@@ -28,7 +28,7 @@ import java.lang.reflect.Type
  * @tips 这个类是Object的子类
  * @fuction
  */
-class JsonParser<T> : Parser<T> {
+class JsonParser<T> : Parser {
 
     private val gson = Gson()
 

@@ -1,7 +1,6 @@
-package com.rayhahah.library.parser
+package com.rayhahah.easyhttp
 
-import okhttp3.Response
-import java.lang.reflect.Type
+import android.util.Log
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -21,22 +20,16 @@ import java.lang.reflect.Type
  *
  * @author Rayhahah
  * @blog http://rayhahah.com
- * @time 2018/3/7
+ * @time 2018/3/8
  * @tips 这个类是Object的子类
  * @fuction
  */
-class DefaultParser<T> : Parser {
-    override fun parse(response: Response, type: Type): T? {
-        return response as T
-    }
 
-    override fun isCanParse(contentType: String, type: Type): Boolean {
-        return false
-    }
+fun l(msg: Any, tag: String = "lzh") {
+    Log.e(tag, msg.toString())
+}
 
-    override fun parse(content: String, type: Type): T? {
-        return content as T
-    }
-
+fun <T : Any> T.log(desc: String = this::class.java.simpleName, tag: String = "lzh") {
+    Log.e(tag, "$desc=${this}")
 }
 
