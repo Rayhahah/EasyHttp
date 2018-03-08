@@ -6,6 +6,7 @@ import com.rayhahah.library.http.HttpHeader
 import com.rayhahah.library.http.TYPE
 import com.rayhahah.library.service.RequestManager
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -39,14 +40,16 @@ class EasyHttp {
 
     var client: OkHttpClient? = null
     lateinit var baseUrl: String
-    lateinit var src: String
+    var src: String = ""
     var type: String = TYPE.METHOD_POST
 
     var json: String? = null
     val params = Params()
     val head = HttpHeader(HashMap<String, String>())
+    val downloadParams = Download()
     var data: Params.() -> Unit by LambdaDelegate<Params>(params)
     var header: HttpHeader.() -> Unit by LambdaDelegate<HttpHeader>(head)
+    var download: Download.() -> Unit by LambdaDelegate<Download>(downloadParams)
 
     /**
      * 异步加载数据
@@ -91,8 +94,57 @@ class EasyHttp {
         }
     }
 
+    /**
+     * 异步加载数据
+     */
+    fun download(success: (data: File) -> Unit) {
+        download(success, { call, exception -> }, { value, total -> })
+    }
 
-    fun <T> rx(progress: (value: Float, total: Long) -> Unit): Observable<T>? {
-        return null
+
+    /**
+     * 异步加载数据
+     */
+    fun download(success: (data: File) -> Unit
+                 , failed: (call: Call, exception: Exception) -> Unit
+                 , progress: (value: Float, total: Long) -> Unit) {
+        RequestManager.goDownload<File>(client, baseUrl + src, head, downloadParams.fileDir, downloadParams.fileName, success, failed, progress)
+    }
+
+
+    fun rx(progress: (value: Float, total: Long) -> Unit = { v, t -> }): Observable<Response> {
+        return when (type) {
+            TYPE.METHOD_GET ->
+                RequestManager.rxGet<Response>(client, baseUrl + src, head, params.data, progress)
+            TYPE.METHOD_POST ->
+                if (json != null) {
+                    RequestManager.rxJson<Response>(client, baseUrl + src, head, type, json!!, progress)
+                } else {
+                    val paramsType = params.getType()
+                    when (paramsType) {
+                        Params.SINGLE_FILE -> {
+                            val fileMap = HashMap<String, HttpFile>()
+                            val fileList = ArrayList<File>()
+                            fileList.add(params.files.DEFAULT!!)
+                            fileMap.put("", HttpFile(Files.FILE_TYPE_FILE, fileList))
+                            RequestManager.rxFile<Response>(client, baseUrl + src, head, params.data, fileMap, progress)
+                        }
+                        Params.LIST_FILE -> RequestManager.rxFile<Response>(client, baseUrl + src, head, params.data, params.files.data, progress)
+                        else -> RequestManager.rxForm<Response>(client, baseUrl + src, head, type, params.data, progress)
+                    }
+                }
+            TYPE.METHOD_PUT,
+            TYPE.METHOD_DELETE ->
+                if (json != null) {
+                    RequestManager.rxJson<Response>(client, baseUrl + src, head, type, json!!, progress)
+                } else {
+                    RequestManager.rxForm<Response>(client, baseUrl + src, head, type, params.data, progress)
+                }
+            else -> {
+                Observable.create<Response> { emitter: ObservableEmitter<Response> ->
+                    emitter.onError(throw Throwable("Please Enter Right Type"))
+                }
+            }
+        }
     }
 }

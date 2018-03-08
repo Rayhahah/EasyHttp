@@ -1,7 +1,4 @@
-package com.rayhahah.library.parser
-
-import okhttp3.Response
-import java.lang.reflect.Type
+package com.rayhahah.library.core
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -21,22 +18,11 @@ import java.lang.reflect.Type
  *
  * @author Rayhahah
  * @blog http://rayhahah.com
- * @time 2018/3/7
+ * @time 2018/3/8
  * @tips 这个类是Object的子类
  * @fuction
  */
-class DefaultParser<T> : Parser {
-    override fun parse(response: Response, type: Type): T? {
-        return response as T
-    }
-
-    override fun isCanParse(contentType: String, type: Type): Boolean {
-        return false
-    }
-
-    override fun parse(content: String, type: Type): T? {
-        return content as T
-    }
-
+class Download {
+    lateinit var fileDir: String
+    lateinit var fileName: String
 }
-

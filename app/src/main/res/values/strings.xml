@@ -8,4 +8,5 @@
     <string name="delete_request">DELETE请求</string>
     <string name="post_file">上传单个文件</string>
     <string name="post_list_file">上传多个文件</string>
+    <string name="dowload_file">下载文件</string>
 </resources>

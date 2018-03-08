@@ -31,11 +31,11 @@ import java.lang.reflect.Type
  * @tips 这个类是Object的子类
  * @fuction
  */
-class FileParser(
+class FileParser<T>(
         private val mDestFileDir: String,
         private val mdestFileName: String,
-        private val progress: (progress: Float, total: Long) -> Unit) : Parser<File> {
-    override fun parse(response: Response, type: Type): File? {
+        private val progress: (progress: Float, total: Long) -> Unit) : Parser {
+    override fun parse(response: Response, type: Type): T? {
         var inputStream: InputStream? = null
         val buf = ByteArray(1024 * 8)
         var len = 0
@@ -62,7 +62,7 @@ class FileParser(
             }
             fos.flush()
 
-            return file
+            return file as T
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -86,7 +86,7 @@ class FileParser(
         return true
     }
 
-    override fun parse(content: String, type: Type): File? {
+    override fun parse(content: String, type: Type): T? {
         return null
     }
 

@@ -30,18 +30,22 @@ import java.lang.reflect.Type
  * @fuction
  */
 
-class WrapperCallBack<T>(val callBack: AbstractCallBack<T>, val parsers: Parser<T>) : AbstractCallBack<Response>() {
+class WrapperCallBack<T>(val callBack: AbstractCallBack<T>, val parsers: Parser) : AbstractCallBack<Response>() {
 
     override fun fail(call: Call, e: Exception) {
-
+        callBack.fail(call, e)
     }
 
     override fun success(call: Call, response: Response) {
-        if (parsers.isCanParse(response.body()?.contentType().toString(), getType())) {
-            val data = parsers.parse(response, getType())
-            callBack.success(call, data!!)
-        } else {
-            callBack.success(call, response as T)
+        try {
+            if (parsers.isCanParse(response.body()?.contentType().toString(), getType())) {
+                val data = parsers.parse(response, getType())
+                callBack.success(call, data as T)
+            } else {
+                callBack.success(call, response as T)
+            }
+        } catch (e: Exception) {
+            callBack.fail(call, e)
         }
     }
 

@@ -34,6 +34,7 @@ class Files {
         const val FILE_TYPE_IMAGE = "image/*"
         const val FILE_TYPE_AUDIO = "audio/*"
         const val FILE_TYPE_VIDEO = "video/*"
+        const val FILE_TYPE_MULTIPART = "multipart/form-data"
     }
 
     var DEFAULT: File? = null
