@@ -39,7 +39,7 @@ class EasyClient {
     var interceptors: ArrayList<Interceptor> = ArrayList()
     var networkInterceptors: ArrayList<Interceptor> = ArrayList()
     var retryOnConnectionFailure: Boolean = false
-    var cache: Cache?=null
+    var cache: Cache? = null
 
     operator fun ArrayList<Interceptor>.invoke(vararg interceptor: Interceptor) {
         this.addAll(interceptor)
@@ -55,8 +55,16 @@ class EasyClient {
         builder = initNetworkInterceptors(builder, networkInterceptors)
         builder = initInterceptors(builder, interceptors)
         val okHttpClient = builder.build()
-        RequestManager.client = okHttpClient
+        initDefaultClient(okHttpClient)
+
         return okHttpClient
+    }
+
+    /**
+     * 初始化默认使用的Client
+     */
+    fun initDefaultClient(okHttpClient: OkHttpClient) {
+        RequestManager.client = okHttpClient
     }
 
 
