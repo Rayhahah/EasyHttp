@@ -40,7 +40,7 @@ class Files {
     var DEFAULT: File? = null
 
     var data = HashMap<String, HttpFile>()
-    internal operator fun String.invoke(value: HttpFile) {
+    operator fun String.invoke(value: HttpFile) {
         data[this] = value
     }
 
