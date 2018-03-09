@@ -7,16 +7,19 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.rayhahah.easyhttp.Util.FileUtils
 import com.rayhahah.library.core.EClient
+import com.rayhahah.library.core.EGet
 import com.rayhahah.library.core.EHttp
 import com.rayhahah.library.core.Files
 import com.rayhahah.library.http.TYPE
 import com.sembozdemir.permissionskt.askPermissions
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Response
 import java.io.File
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
@@ -52,6 +55,18 @@ class MainActivity : AppCompatActivity() {
             request(TYPE.METHOD_GET, "test", "1234567") { data: Response ->
                 mTvTest.setText(data.body()?.string())
             }
+
+            /**
+             * 下面是一种用于简单的Get请求
+             */
+            var params = HashMap<String, String>()
+            EGet("url", params).go(success = {
+
+            }, failed = { call, exception ->
+            }, progress = { value, total ->
+
+            })
+
         }
 
         /**
@@ -62,6 +77,17 @@ class MainActivity : AppCompatActivity() {
                 Log.e("lzh", data.toString())
                 mTvTest.setText(data.body()?.string())
             }
+
+            /**
+             * 下面一种是用于简单的Post请求
+             */
+//            var params = HashMap<String, String>()
+//            EPost("url", params).go(success = {
+//
+//            }, failed = { call, exception ->
+//            }, progress = { value, total ->
+//
+//            })
         }
 
         /**
@@ -133,6 +159,34 @@ class MainActivity : AppCompatActivity() {
                 value.log()
                 total.log()
             })
+
+            /**
+             *下面这种是简化了的下载请求
+             */
+//            EDownload("http://thing.rayhahah.com/version/EasySport_1.1.4.apk",
+//                    FileUtils.getRootFilePath() + "EasyHttp/images",
+//                    "test.apk",
+//                    success = {
+//
+//                    },
+//                    fail = { call: Call, e: Exception ->
+//
+//                    }, progress = { value, total ->
+//            })
+
+        }
+
+        /**
+         * RxJava的形式处理网络请求
+         */
+        mRx.setOnClickListener {
+            rxRequest(TYPE.METHOD_POST, "test", "1234567")
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { t: Response ->
+                        t.log()
+                        mTvTest.setText(t.body()?.string())
+                    }
         }
     }
 
@@ -174,7 +228,7 @@ class MainActivity : AppCompatActivity() {
         }.go(success)
     }
 
-    fun rxRequest(method: String, username: String, password: String): io.reactivex.Observable<Response> {
+    fun rxRequest(method: String, username: String, password: String): Observable<Response> {
         return EHttp {
             baseUrl = "http://mall.rayhahah.com/"
             src = "user/login.do"
@@ -187,7 +241,7 @@ class MainActivity : AppCompatActivity() {
                 "cache-Control"("no-cache")
             }
 
-        }.rx()
+        }.rx(progress = { value, total -> })
     }
 
 
@@ -211,6 +265,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         }.go(success, fail, progress)
+
     }
 
     /**
@@ -223,6 +278,4 @@ class MainActivity : AppCompatActivity() {
             cacheDir
         }
     }
-
-
 }

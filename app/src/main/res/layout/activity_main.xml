@@ -58,12 +58,6 @@
         android:text="@string/post_file"
         android:textAllCaps="false"/>
 
-    <Button
-        android:id="@+id/mPostListFile"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/post_list_file"
-        android:textAllCaps="false"/>
 
     <Button
         android:id="@+id/mDownload"
@@ -71,6 +65,14 @@
         android:layout_height="wrap_content"
         android:text="@string/dowload_file"
         android:textAllCaps="false"/>
+
+    <Button
+        android:id="@+id/mRx"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/rx"
+        android:textAllCaps="false"/>
+
 
     <TextView
         android:id="@+id/mTvTest"
