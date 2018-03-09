@@ -211,7 +211,7 @@ EHttp {
 
 
 ## 贡献
-如果你在使用TakePhoto中遇到任何问题可以提[Issues](https://github.com/Rayhahah/EasyHttp/issues)出来。另外欢迎大家为TakePhoto贡献智慧，欢迎大家[Fork and Pull requests](https://github.com/Rayhahah/EasyHttp)。
+如果你在使用EasyHttp中遇到任何问题可以提[Issues](https://github.com/Rayhahah/EasyHttp/issues)出来。另外欢迎大家为EasyHttp贡献智慧，欢迎大家[Fork and Pull requests](https://github.com/Rayhahah/EasyHttp)。
 喜欢就给个star呗，o(*￣▽￣*)ブ
 
 ## 感谢
