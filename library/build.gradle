@@ -1,5 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+
+apply plugin: 'com.github.dcendents.android-maven' //必加
+group='com.github.rayhahah' //必加,com.github.<用户名>(也就是你GtiHub上的地址)
 android {
     compileSdkVersion 26
 
@@ -35,8 +38,33 @@ dependencies {
     api 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation "io.reactivex.rxjava2:rxjava:2.1.10"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
 repositories {
     mavenCentral()
+}
+
+// 指定编码
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+// 打包源码
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+// 制作文档(Javadoc)
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives sourcesJar
+    archives javadocJar
 }
