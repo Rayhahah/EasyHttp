@@ -7,9 +7,9 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.rayhahah.easyhttp.Util.FileUtils
 import com.rayhahah.library.core.EClient
-import com.rayhahah.library.core.EGet
 import com.rayhahah.library.core.EHttp
 import com.rayhahah.library.core.Files
+import com.rayhahah.library.http.HttpFile
 import com.rayhahah.library.http.TYPE
 import com.sembozdemir.permissionskt.askPermissions
 import io.reactivex.Observable
@@ -59,13 +59,13 @@ class MainActivity : AppCompatActivity() {
             /**
              * 下面是一种用于简单的Get请求
              */
-            var params = HashMap<String, String>()
-            EGet("url", params).go(success = {
-
-            }, failed = { call, exception ->
-            }, progress = { value, total ->
-
-            })
+//            var params = HashMap<String, String>()
+//            EGet("url", params).go(success = {
+//
+//            }, failed = { call, exception ->
+//            }, progress = { value, total ->
+//
+//            })
 
         }
 
@@ -258,6 +258,11 @@ class MainActivity : AppCompatActivity() {
                 "password"(password)
                 file = {
                     "upload_file"(Files.FILE_TYPE_MULTIPART, cover)
+                    val fileList = ArrayList<File>()
+                    fileList.add(File("1.txt"))
+                    fileList.add(File("2.txt"))
+                    fileList.add(File("3.txt"))
+                    "upload"(HttpFile(Files.FILE_TYPE_MULTIPART, fileList))
                 }
             }
             header = {
