@@ -1,9 +1,7 @@
-package com.rayhahah.library.core
+package com.rayhahah.easyhttp
 
-import com.rayhahah.library.http.TYPE
-import okhttp3.Call
-import okhttp3.OkHttpClient
-import java.io.File
+import com.rayhahah.library.parser.Parser
+import okhttp3.Response
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -23,53 +21,29 @@ import java.io.File
  *
  * @author Rayhahah
  * @blog http://rayhahah.com
- * @time 2018/2/28
+ * @time 2018/4/5
  * @tips 这个类是Object的子类
  * @fuction
  */
-
-
-fun EHttp(block: EasyHttp.() -> Unit): EasyHttp {
-    return EasyHttp().apply { block(this) }
-}
-
-fun EGet(url: String, params: HashMap<String, String>): EasyHttp {
-    return EHttp {
-        baseUrl = url
-        type = TYPE.METHOD_GET
-        data = {
-            data = params
-        }
+class CustomParser : Parser {
+    /**
+     * 数据解析
+     */
+    override fun parse(response: Response): Any? {
+        return response.body()?.string()
     }
-}
 
-fun EPost(url: String, params: HashMap<String, String>): EasyHttp {
-    return EHttp {
-        baseUrl = url
-        type = TYPE.METHOD_POST
-        data = {
-            data = params
-        }
+    /**
+     * 数据解析的规则
+     */
+    override fun isCanParse(response: Response): Boolean {
+        return true
     }
-}
 
-fun EDownload(url: String, fileDir: String, fileName: String,
-              success: (file: File) -> Unit = { f -> },
-              fail: (call: Call, e: Exception) -> Unit = { c, e -> },
-              progress: (value: Float, total: Long) -> Unit = { v, t -> }) {
-    return EHttp {
-        baseUrl = url
-        download = {
-            this.fileDir = fileDir
-            this.fileName = fileName
-        }
-    }.download(success, fail, progress)
-}
-
-fun EClient(block: EasyClient.() -> Unit): OkHttpClient? {
-    return EasyClient().apply { block(this) }.init()
-}
-
-fun EClient(client: OkHttpClient) {
-    return EasyClient().initDefaultClient(client)
+    /**
+     * 数据解析
+     */
+    override fun unParse(response: Response): Any? {
+        return response.body()?.string()
+    }
 }

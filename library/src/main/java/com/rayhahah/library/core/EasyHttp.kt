@@ -1,15 +1,17 @@
 package com.rayhahah.library.core
 
+import com.google.gson.reflect.TypeToken
 import com.rayhahah.library.delegate.LambdaDelegate
 import com.rayhahah.library.http.HttpFile
 import com.rayhahah.library.http.HttpHeader
 import com.rayhahah.library.http.TYPE
+import com.rayhahah.library.parser.JsonParser
+import com.rayhahah.library.parser.Parser
 import com.rayhahah.library.service.RequestManager
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import okhttp3.Call
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import java.io.File
 import java.lang.Exception
 import java.util.*
@@ -50,26 +52,28 @@ class EasyHttp {
     var data: Params.() -> Unit by LambdaDelegate<Params>(params)
     var header: HttpHeader.() -> Unit by LambdaDelegate<HttpHeader>(head)
     var download: Download.() -> Unit by LambdaDelegate<Download>(downloadParams)
+    var parser: Parser? = null
 
     /**
      * 异步加载数据
      */
-    fun go(success: (data: Response) -> Unit) {
-        go(success, { call, exception -> }, { value, total -> })
+    inline fun <reified T : Any> go(noinline success: (data: T) -> Unit) {
+        go<T>(success, { call, exception -> }, { value, total -> })
     }
 
     /**
      * 异步加载数据
      */
-    fun go(success: (data: Response) -> Unit
-           , failed: (call: Call, exception: Exception) -> Unit
-           , progress: (value: Float, total: Long) -> Unit) {
+    inline fun <reified T : Any> go(noinline success: (data: T) -> Unit,
+                                    noinline failed: (call: Call, exception: Exception) -> Unit,
+                                    noinline progress: (value: Float, total: Long) -> Unit) {
+        initParser<T>()
         when (type) {
             TYPE.METHOD_GET ->
-                RequestManager.goGet<Response>(client, baseUrl + src, head, params.data, success, failed, progress)
+                RequestManager.goGet<T>(client, baseUrl + src, head, params.data, parser, success, failed, progress)
             TYPE.METHOD_POST ->
                 if (json != null) {
-                    RequestManager.goJson<Response>(client, baseUrl + src, head, type, json!!, success, failed, progress)
+                    RequestManager.goJson<T>(client, baseUrl + src, head, type, json!!, parser, success, failed, progress)
                 } else {
                     val paramsType = params.getType()
                     when (paramsType) {
@@ -78,18 +82,18 @@ class EasyHttp {
                             val fileList = ArrayList<File>()
                             fileList.add(params.files.DEFAULT!!)
                             fileMap.put("", HttpFile(Files.FILE_TYPE_FILE, fileList))
-                            RequestManager.goFile<Response>(client, baseUrl + src, head, params.data, fileMap, success, failed, progress)
+                            RequestManager.goFile<T>(client, baseUrl + src, head, params.data, fileMap, parser, success, failed, progress)
                         }
-                        Params.LIST_FILE -> RequestManager.goFile<Response>(client, baseUrl + src, head, params.data, params.files.data, success, failed, progress)
-                        else -> RequestManager.goForm<Response>(client, baseUrl + src, head, type, params.data, success, failed, progress)
+                        Params.LIST_FILE -> RequestManager.goFile<T>(client, baseUrl + src, head, params.data, params.files.data, parser, success, failed, progress)
+                        else -> RequestManager.goForm<T>(client, baseUrl + src, head, type, params.data, parser, success, failed, progress)
                     }
                 }
             TYPE.METHOD_PUT,
             TYPE.METHOD_DELETE ->
                 if (json != null) {
-                    RequestManager.goJson<Response>(client, baseUrl + src, head, type, json!!, success, failed, progress)
+                    RequestManager.goJson<T>(client, baseUrl + src, head, type, json!!, parser, success, failed, progress)
                 } else {
-                    RequestManager.goForm<Response>(client, baseUrl + src, head, type, params.data, success, failed, progress)
+                    RequestManager.goForm<T>(client, baseUrl + src, head, type, params.data, parser, success, failed, progress)
                 }
         }
     }
@@ -112,13 +116,14 @@ class EasyHttp {
     }
 
 
-    fun rx(progress: (value: Float, total: Long) -> Unit = { v, t -> }): Observable<Response> {
+    inline fun <reified T> rx(noinline progress: (value: Float, total: Long) -> Unit = { v, t -> }): Observable<T> {
+        initParser<T>()
         return when (type) {
             TYPE.METHOD_GET ->
-                RequestManager.rxGet<Response>(client, baseUrl + src, head, params.data, progress)
+                RequestManager.rxGet<T>(client, baseUrl + src, head, params.data, parser, progress)
             TYPE.METHOD_POST ->
                 if (json != null) {
-                    RequestManager.rxJson<Response>(client, baseUrl + src, head, type, json!!, progress)
+                    RequestManager.rxJson<T>(client, baseUrl + src, head, type, json!!, parser, progress)
                 } else {
                     val paramsType = params.getType()
                     when (paramsType) {
@@ -127,24 +132,39 @@ class EasyHttp {
                             val fileList = ArrayList<File>()
                             fileList.add(params.files.DEFAULT!!)
                             fileMap.put("", HttpFile(Files.FILE_TYPE_FILE, fileList))
-                            RequestManager.rxFile<Response>(client, baseUrl + src, head, params.data, fileMap, progress)
+                            RequestManager.rxFile<T>(client, baseUrl + src, head, params.data, fileMap, parser, progress)
                         }
-                        Params.LIST_FILE -> RequestManager.rxFile<Response>(client, baseUrl + src, head, params.data, params.files.data, progress)
-                        else -> RequestManager.rxForm<Response>(client, baseUrl + src, head, type, params.data, progress)
+                        Params.LIST_FILE -> RequestManager.rxFile<T>(client, baseUrl + src, head, params.data, params.files.data, parser, progress)
+                        else -> RequestManager.rxForm<T>(client, baseUrl + src, head, type, params.data, parser, progress)
                     }
                 }
             TYPE.METHOD_PUT,
             TYPE.METHOD_DELETE ->
                 if (json != null) {
-                    RequestManager.rxJson<Response>(client, baseUrl + src, head, type, json!!, progress)
+                    RequestManager.rxJson<T>(client, baseUrl + src, head, type, json!!, parser, progress)
                 } else {
-                    RequestManager.rxForm<Response>(client, baseUrl + src, head, type, params.data, progress)
+                    RequestManager.rxForm<T>(client, baseUrl + src, head, type, params.data, parser, progress)
                 }
             else -> {
-                Observable.create<Response> { emitter: ObservableEmitter<Response> ->
+                Observable.create<T> { emitter: ObservableEmitter<T> ->
                     emitter.onError(throw Throwable("Please Enter Right Type"))
                 }
             }
         }
     }
+
+    /**
+     * 初始化数据解析类
+     */
+    inline fun <reified T> initParser() {
+        if (parser == null) {
+            parser = if (RequestManager.parser != null) {
+                RequestManager.parser
+            } else {
+                val type = object : TypeToken<T>() {}.rawType
+                JsonParser<T>(type, T::class.java.name)
+            }
+        }
+    }
+
 }

@@ -4,21 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import com.rayhahah.easyhttp.Util.FileUtils
 import com.rayhahah.library.core.EClient
 import com.rayhahah.library.core.EHttp
 import com.rayhahah.library.core.Files
-import com.rayhahah.library.http.HttpFile
 import com.rayhahah.library.http.TYPE
 import com.sembozdemir.permissionskt.askPermissions
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.Cache
 import okhttp3.Call
-import okhttp3.Response
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -43,8 +39,8 @@ class MainActivity : AppCompatActivity() {
                 interceptors()
                 networkInterceptors()
                 retryOnConnectionFailure = true
-                cache = Cache(getCachePathStr(), maxCacheSize.toLong())
-
+                cache = null
+                parser = null
             }
         }
 
@@ -52,8 +48,8 @@ class MainActivity : AppCompatActivity() {
          * 普通Get请求
          */
         mGet.setOnClickListener {
-            request(TYPE.METHOD_GET, "test", "1234567") { data: Response ->
-                mTvTest.setText(data.body()?.string())
+            request(TYPE.METHOD_GET, "test", "1234567") { data: User ->
+                mTvTest.setText(data.data.username)
             }
 
             /**
@@ -73,9 +69,21 @@ class MainActivity : AppCompatActivity() {
          * 普通POST请求
          */
         mPost.setOnClickListener {
-            request(TYPE.METHOD_POST, "test", "1234567") { data: Response ->
-                Log.e("lzh", data.toString())
-                mTvTest.setText(data.body()?.string())
+            EHttp {
+                baseUrl = "http://mall.rayhahah.com/"
+                src = "user/login.do"
+                type = TYPE.METHOD_POST
+                data = {
+                    "username"("test")
+                    "password"("1234567")
+                }
+                header = {
+                    "cache-Control"("no-cache")
+                }
+
+            }.go<String> { data: String ->
+                //直接返回json数据
+                mTvTest.setText("data=$data")
             }
 
             /**
@@ -94,7 +102,7 @@ class MainActivity : AppCompatActivity() {
          * 普通PUT请求
          */
         mPut.setOnClickListener {
-            request(TYPE.METHOD_PUT, "admin", "1234567") { data: Response ->
+            request(TYPE.METHOD_PUT, "admin", "1234567") { data: User ->
             }
         }
 
@@ -102,7 +110,7 @@ class MainActivity : AppCompatActivity() {
          * 普通DELETE请求
          */
         mDelete.setOnClickListener {
-            request(TYPE.METHOD_DELETE, "admin", "1234567") { data: Response ->
+            request(TYPE.METHOD_DELETE, "admin", "1234567") { data: User ->
             }
         }
 
@@ -133,7 +141,7 @@ class MainActivity : AppCompatActivity() {
                     "cache-Control"("no-cache")
                 }
 
-            }.go { data: Response ->
+            }.go { data: String ->
 
             }
         }
@@ -183,9 +191,10 @@ class MainActivity : AppCompatActivity() {
             rxRequest(TYPE.METHOD_POST, "test", "1234567")
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { t: Response ->
+                    .subscribe { t: String ->
                         t.log()
-                        mTvTest.setText(t.body()?.string())
+                        mTvTest.setText(t)
+
                     }
         }
     }
@@ -196,10 +205,11 @@ class MainActivity : AppCompatActivity() {
             CODE_CHOOSE_PHOTO -> if (data != null) {
                 var path = FileUtils.getPathFromUri(this, data.data)
                 val file = FileUtils.getFileByPath(path)
-                requestFile("test", "1234567", file, { data: Response ->
+                requestFile("test", "1234567", file, { data: String ->
                     data.log()
-                    mTvTest.setText(data.body()?.string())
+                    mTvTest.setText(data)
                 }, { call: Call, e: Exception ->
+                    e.log()
 
                 }, { value, total ->
                     value.log()
@@ -212,7 +222,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun request(method: String, username: String, password: String, success: (data: Response) -> Unit) {
+    fun request(method: String, username: String, password: String, success: (data: User) -> Unit) {
         EHttp {
             baseUrl = "http://mall.rayhahah.com/"
             src = "user/login.do"
@@ -225,10 +235,10 @@ class MainActivity : AppCompatActivity() {
                 "cache-Control"("no-cache")
             }
 
-        }.go(success)
+        }.go<User>(success)
     }
 
-    fun rxRequest(method: String, username: String, password: String): Observable<Response> {
+    fun rxRequest(method: String, username: String, password: String): Observable<String> {
         return EHttp {
             baseUrl = "http://mall.rayhahah.com/"
             src = "user/login.do"
@@ -246,7 +256,7 @@ class MainActivity : AppCompatActivity() {
 
 
     fun requestFile(username: String, password: String, cover: File,
-                    success: (data: Response) -> Unit,
+                    success: (data: String) -> Unit,
                     fail: (call: Call, e: Exception) -> Unit,
                     progress: (value: Float, total: Long) -> Unit) {
         EHttp {
@@ -258,11 +268,11 @@ class MainActivity : AppCompatActivity() {
                 "password"(password)
                 file = {
                     "upload_file"(Files.FILE_TYPE_MULTIPART, cover)
-                    val fileList = ArrayList<File>()
-                    fileList.add(File("1.txt"))
-                    fileList.add(File("2.txt"))
-                    fileList.add(File("3.txt"))
-                    "upload"(HttpFile(Files.FILE_TYPE_MULTIPART, fileList))
+//                    val fileList = ArrayList<File>()
+//                    fileList.add(File("1.txt"))
+//                    fileList.add(File("2.txt"))
+//                    fileList.add(File("3.txt"))
+//                    "upload"(HttpFile(Files.FILE_TYPE_MULTIPART, fileList))
                 }
             }
             header = {

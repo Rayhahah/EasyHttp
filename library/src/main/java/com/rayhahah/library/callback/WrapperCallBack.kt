@@ -3,9 +3,6 @@ package com.rayhahah.library.callback
 import com.rayhahah.library.parser.Parser
 import okhttp3.Call
 import okhttp3.Response
-import java.lang.Exception
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -30,7 +27,7 @@ import java.lang.reflect.Type
  * @fuction
  */
 
-class WrapperCallBack<T>(val callBack: AbstractCallBack<T>, val parsers: Parser) : AbstractCallBack<Response>() {
+class WrapperCallBack<T>(val callBack: AbstractCallBack<T>, val parsers: Parser?) : AbstractCallBack<Response>() {
 
     override fun fail(call: Call, e: Exception) {
         callBack.fail(call, e)
@@ -38,21 +35,15 @@ class WrapperCallBack<T>(val callBack: AbstractCallBack<T>, val parsers: Parser)
 
     override fun success(call: Call, response: Response) {
         try {
-            if (parsers.isCanParse(response.body()?.contentType().toString(), getType())) {
-                val data = parsers.parse(response, getType())
+            if (parsers?.isCanParse(response)!!) {
+                val data = parsers.parse(response)
                 callBack.success(call, data as T)
             } else {
-                callBack.success(call, response as T)
+                val data = parsers.unParse(response)
+                callBack.success(call, data as T)
             }
         } catch (e: Exception) {
             callBack.fail(call, e)
         }
-    }
-
-    fun getType(): Type {
-        val type = callBack.javaClass.genericSuperclass
-        val paramType = (type as ParameterizedType).actualTypeArguments
-
-        return paramType[0]
     }
 }

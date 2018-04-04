@@ -7,7 +7,6 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.lang.Exception
-import java.lang.reflect.Type
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -35,7 +34,7 @@ class FileParser<T>(
         private val mDestFileDir: String,
         private val mdestFileName: String,
         private val progress: (progress: Float, total: Long) -> Unit) : Parser {
-    override fun parse(response: Response, type: Type): T? {
+    override fun parse(response: Response): T? {
         var inputStream: InputStream? = null
         val buf = ByteArray(1024 * 8)
         var len = 0
@@ -82,11 +81,11 @@ class FileParser<T>(
         return null
     }
 
-    override fun isCanParse(contentType: String, type: Type): Boolean {
+    override fun isCanParse(response: Response): Boolean {
         return true
     }
 
-    override fun parse(content: String, type: Type): T? {
+    override fun unParse(response: Response): T? {
         return null
     }
 

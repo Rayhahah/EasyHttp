@@ -1,5 +1,6 @@
 package com.rayhahah.library.core
 
+import com.rayhahah.library.parser.Parser
 import com.rayhahah.library.service.RequestManager
 import okhttp3.Cache
 import okhttp3.Interceptor
@@ -40,6 +41,7 @@ class EasyClient {
     var networkInterceptors: ArrayList<Interceptor> = ArrayList()
     var retryOnConnectionFailure: Boolean = false
     var cache: Cache? = null
+    var parser: Parser? = null
 
     operator fun ArrayList<Interceptor>.invoke(vararg interceptor: Interceptor) {
         this.addAll(interceptor)
@@ -65,6 +67,7 @@ class EasyClient {
      */
     fun initDefaultClient(okHttpClient: OkHttpClient) {
         RequestManager.client = okHttpClient
+        RequestManager.parser = parser
     }
 
 

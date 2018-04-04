@@ -2,7 +2,6 @@ package com.rayhahah.library.parser
 
 import okhttp3.Response
 import java.io.IOException
-import java.lang.reflect.Type
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -29,10 +28,10 @@ import java.lang.reflect.Type
 interface Parser {
 
     @Throws(IOException::class)
-    fun parse(response: Response, type: Type): Any?
+    fun parse(response: Response): Any?
 
-    fun isCanParse(contentType: String, type: Type): Boolean
+    fun isCanParse(response: Response): Boolean
 
     @Throws(IOException::class)
-    fun parse(content: String, type: Type): Any?
+    fun unParse(response: Response): Any?
 }

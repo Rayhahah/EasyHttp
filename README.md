@@ -8,6 +8,7 @@
 - [x] 文件下载(带进度)
 - [x] 文件上传 (multipart/form-data)(带进度)
 - [x] RxJava2.0请求响应支持
+- [x] 支持Gson自动序列化与Parser自定义拓展
 - [x] 支持OkHttpClient的自定义配置
 - [x] DSL配置请求
 
@@ -18,6 +19,7 @@
 - [文件上传](#文件上传)
 - [文件下载](#文件下载)
 - [RxJava兼容](#RxJava兼容)
+- [自定义Parser](#自定义Parser)
 - [贡献](#贡献)
 - [感谢](#感谢)
 
@@ -209,6 +211,42 @@ EHttp {
                     }
 ```
 
+## 自定义Parser
+默认提供`JsonParser`内部使用`Gson`来自动序列化JSON字符串。
+我们也可以自定义`Parser`来实现自己的数据前处理
+
+这个过程是发生在子线程中的，我们可以去解析一些特地复杂的请求返回数据
+
+实现`Parser`接口，根据自己的需求处理数据返回即可，
+
+ps:这里的返回值要与请求时的泛型类型保持一致
+
+```
+class CustomParser : Parser {
+    /**
+     * 数据解析
+     */
+    override fun parse(response: Response): Any? {
+        return response.body()?.string()
+    }
+
+    /**
+     * 数据解析的规则
+     */
+    override fun isCanParse(response: Response): Boolean {
+        return true
+    }
+
+    /**
+     * 数据解析
+     */
+    override fun unParse(response: Response): Any? {
+        return response.body()?.string()
+    }
+}
+
+```
+
 
 ## 贡献
 如果你在使用EasyHttp中遇到任何问题可以提[Issues](https://github.com/Rayhahah/EasyHttp/issues)出来。另外欢迎大家为EasyHttp贡献智慧，欢迎大家[Fork and Pull requests](https://github.com/Rayhahah/EasyHttp)。
@@ -218,6 +256,3 @@ EHttp {
 - [OkHttp](https://github.com/square/okhttp/)
 - [RxJava](https://github.com/ReactiveX/RxJava/)
 
-
-## TODO
-- Parser的封装，更好对数据展示前预处理

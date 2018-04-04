@@ -25,11 +25,11 @@ import android.util.Log
  * @fuction
  */
 
-fun l(msg: Any, tag: String = "lzh") {
+fun l(msg: Any, tag: String = "rayhahah") {
     Log.e(tag, msg.toString())
 }
 
-fun <T : Any> T.log(desc: String = this::class.java.simpleName, tag: String = "lzh") {
+fun <T : Any> T.log(desc: String = this::class.java.simpleName, tag: String = "rayhahah") {
     Log.e(tag, "$desc=${this}")
 }
 
