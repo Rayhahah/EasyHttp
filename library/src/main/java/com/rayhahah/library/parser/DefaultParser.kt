@@ -1,7 +1,6 @@
 package com.rayhahah.library.parser
 
 import okhttp3.Response
-import java.lang.reflect.Type
 
 /**
  * ┌───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┬───┐ ┌───┬───┬───┐
@@ -21,22 +20,22 @@ import java.lang.reflect.Type
  *
  * @author Rayhahah
  * @blog http://rayhahah.com
- * @time 2018/3/7
+ * @time 2018/4/7
  * @tips 这个类是Object的子类
  * @fuction
  */
-class DefaultParser<T> : Parser {
-    override fun parse(response: Response, type: Type): T? {
-        return response as T
+
+class DefaultParser : Parser {
+    override fun parse(response: Response): Any? {
+        return "hello"
     }
 
-    override fun isCanParse(contentType: String, type: Type): Boolean {
-        return false
+    override fun isCanParse(response: Response): Boolean {
+        return true
     }
 
-    override fun parse(content: String, type: Type): T? {
-        return content as T
+    override fun unParse(response: Response): Any? {
+        return "world"
     }
 
 }
-
