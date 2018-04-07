@@ -48,21 +48,30 @@
 配置全局`OkHttpClient`
 
 ```
-   /**
-    * 构建OkHttpClient
-    * 使用这种方式构建的话，会直接配置成默认使用的OkHttpClient
-    */
-            EClient {
-                timeUnit = TimeUnit.SECONDS
-                connectTimeout = 10
-                readTimeout = 10
-                writeTimeout = 10
-                interceptors()
-                networkInterceptors()
-                retryOnConnectionFailure = true
-                cache = Cache(getCachePathStr(), maxCacheSize.toLong())
-
-            }
+    /**
+              * 构建OkHttpClient
+              * 使用这种方式构建的话，会直接配置成默认使用的OkHttpClient
+              */
+             EClient {
+                 //配置默认的baseUrl
+                 baseUrl = "http://mall.rayhahah.com/"
+                 //配置默认的请求类型
+                 type = TYPE.METHOD_POST
+                 timeUnit = TimeUnit.SECONDS
+                 connectTimeout = 10
+                 readTimeout = 10
+                 writeTimeout = 10
+                 interceptors()
+                 networkInterceptors()
+                 retryOnConnectionFailure = true
+                 cache = null
+                 //配置默认的解析器
+                 parser = null
+                 //配置全局通用的请求头
+                 header = {
+                     "custom_head"("rayhahah")
+                 }
+             }
 ```
 
 或者直接传入自定义的`OkHttpClient`
