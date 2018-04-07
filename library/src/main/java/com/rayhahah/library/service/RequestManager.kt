@@ -7,6 +7,7 @@ import com.rayhahah.library.callback.WrapperCallBack
 import com.rayhahah.library.core.EasyClient
 import com.rayhahah.library.http.HttpFile
 import com.rayhahah.library.http.HttpHeader
+import com.rayhahah.library.http.TYPE
 import com.rayhahah.library.parser.FileParser
 import com.rayhahah.library.parser.Parser
 import com.rayhahah.library.request.HttpRequest
@@ -41,7 +42,10 @@ import okhttp3.OkHttpClient
 class RequestManager {
     companion object {
         var client: OkHttpClient = EasyClient().init()!!
+        var type: String = TYPE.METHOD_GET
         var parser: Parser? = null
+        var baseUrl: String? = null
+        var header = HashMap<String, String>()
 
         val mMainHandler = Handler(Looper.getMainLooper())
 

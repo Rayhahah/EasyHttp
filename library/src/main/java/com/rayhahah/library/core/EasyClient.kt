@@ -1,5 +1,8 @@
 package com.rayhahah.library.core
 
+import com.rayhahah.library.delegate.LambdaDelegate
+import com.rayhahah.library.http.HttpHeader
+import com.rayhahah.library.http.TYPE
 import com.rayhahah.library.parser.Parser
 import com.rayhahah.library.service.RequestManager
 import okhttp3.Cache
@@ -33,6 +36,10 @@ import java.util.concurrent.TimeUnit
 
 class EasyClient {
 
+    var baseUrl: String? = null
+    private val head = HttpHeader(HashMap<String, String>())
+    var header: HttpHeader.() -> Unit by LambdaDelegate<HttpHeader>(head)
+    var type: String = TYPE.METHOD_GET
     var timeUnit: TimeUnit = TimeUnit.SECONDS
     var connectTimeout: Long = 10
     var writeTimeout: Long = 10
@@ -58,7 +65,7 @@ class EasyClient {
         builder = initInterceptors(builder, interceptors)
         val okHttpClient = builder.build()
         initDefaultClient(okHttpClient)
-
+        initEasyParams()
         return okHttpClient
     }
 
@@ -67,20 +74,33 @@ class EasyClient {
      */
     fun initDefaultClient(okHttpClient: OkHttpClient) {
         RequestManager.client = okHttpClient
+    }
+
+    /**
+     * 初始化EasyHttp的统一请求属性
+     */
+    private fun initEasyParams() {
+        RequestManager.type = type
         RequestManager.parser = parser
+        RequestManager.baseUrl = baseUrl
+        RequestManager.header = head.currentData()
     }
 
 
     private fun initNetworkInterceptors(builder: OkHttpClient.Builder?, networkInterceptors: ArrayList<Interceptor>): OkHttpClient.Builder? {
         networkInterceptors.forEach { i: Interceptor? ->
-            builder?.addNetworkInterceptor(i)
+            if (i != null) {
+                builder?.addNetworkInterceptor(i)
+            }
         }
         return builder
     }
 
     private fun initInterceptors(builder: OkHttpClient.Builder?, interceptors: ArrayList<Interceptor>): OkHttpClient.Builder? {
         interceptors.forEach { i: Interceptor? ->
-            builder?.addInterceptor(i)
+            if (i != null) {
+                builder?.addInterceptor(i)
+            }
         }
         return builder
     }

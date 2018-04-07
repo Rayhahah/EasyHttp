@@ -37,7 +37,15 @@ class HttpHeader(var data: HashMap<String, String>) : Map<String, String> by dat
     var CONNECTION by MapDelegate(data, "Connection")
     var CONTENT_LENGTH by MapDelegate(data, "Content-length")
 
-   operator fun String.invoke(value: String) {
+    operator fun String.invoke(value: String) {
         data[this] = value
+    }
+
+    fun currentData(): HashMap<String, String> {
+        return data
+    }
+
+    fun updateData(data: HashMap<String, String>) {
+        this.data = data
     }
 }
